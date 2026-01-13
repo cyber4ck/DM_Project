@@ -30,3 +30,8 @@ Upload train.py and your dataset to Google Colab.
 Run the script using a GPU Runtime.
 Download the generated model.h5 and classes.json files.
 Paste them into your project folder on your laptop.
+
+
+<h1>main thing is after trainning the mode the Download the </h1>
+<h3>model.h5</h3>
+<h3>classes.json</h3>
