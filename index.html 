@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crop Doctor</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f8f0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; text-align: center; }
+        h1 { color: #2e7d32; }
+        .upload-area { border: 2px dashed #2e7d32; padding: 20px; border-radius: 10px; margin: 20px 0; cursor: pointer; background: #e8f5e9; }
+        .upload-area:hover { background: #c8e6c9; }
+        input[type="file"] { display: none; }
+        button { background-color: #2e7d32; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; }
+        button:hover { background-color: #1b5e20; }
+        #preview { max-width: 100%; margin-top: 15px; border-radius: 10px; display: none; }
+        .result-box { margin-top: 20px; text-align: left; display: none; background: #fffde7; padding: 15px; border-radius: 5px; border-left: 5px solid #ffeb3b; }
+        .loading { display: none; color: #555; margin-top: 10px; }
+        .error-msg { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌱 Crop Disease Detector</h1>
+    <p>Upload a leaf image to detect diseases and get treatment.</p>
+
+    <form id="uploadForm">
+        <label class="upload-area">
+            <span>Click to Upload Image</span>
+            <input type="file" name="file" id="fileInput" accept="image/*" required>
+        </label>
+        <img id="preview" src="#" alt="Image Preview">
+        <br><br>
+        <button type="submit">Analyze Leaf</button>
+    </form>
+
+    <div class="loading" id="loading">🍃 AI is analyzing... Please wait...</div>
+
+    <div class="result-box" id="resultBox">
+        <h3>Result: <span id="diseaseName"></span></h3>
+        <p><strong>Treatment & Prevention:</strong></p>
+        <p id="cureInfo"></p>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const uploadForm = document.getElementById('uploadForm');
+    const resultBox = document.getElementById('resultBox');
+    const diseaseName = document.getElementById('diseaseName');
+    const cureInfo = document.getElementById('cureInfo');
+    const loading = document.getElementById('loading');
+
+    // Show image preview
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle form submission
+    uploadForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        resultBox.style.display = 'none';
+        loading.style.display = 'block';
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            loading.style.display = 'none';
+            resultBox.style.display = 'block';
+
+            if (data.disease === "Unknown") {
+                diseaseName.innerText = "Unknown / Unclear";
+                diseaseName.style.color = "red";
+                cureInfo.innerText = data.cure;
+                cureInfo.classList.add("error-msg");
+            } else {
+                diseaseName.innerText = data.disease;
+                diseaseName.style.color = "#2e7d32";
+                cureInfo.innerText = data.cure;
+                cureInfo.classList.remove("error-msg");
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            loading.innerText = "Error connecting to server.";
+        }
+    });
+</script>
+
+</body>
+</html>
